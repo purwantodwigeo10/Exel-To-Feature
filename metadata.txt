@@ -1,0 +1,25 @@
+[general]
+name=Exel to Feature (Coordinate Transformation)
+qgisMinimumVersion=3.22
+qgisMaximumVersion=3.99
+description=Create point, polyline, and polygon layers from tabular coordinates with optional CRS transformation.
+version=1.4.3
+author=Dwi Purwanto
+email=ruangspasial@gmail.com
+about=Exel to Feature reads CSV and XLSX coordinate tables, maps X, Y, optional Z and sequence fields, and creates point, polyline, or polygon output. CSV and XLSX work without an additional Python package; legacy XLS input requires xlrd in the QGIS Python environment. License activation uses the Ruang Spasial License Hub over HTTPS. No spreadsheet or GIS dataset is transmitted to the service.
+category=Vector
+icon=icon.png
+homepage=https://aktivasi.ruangspasial.my.id/help/exel-to-feature-coordinate-transformation-qgis
+tracker=https://github.com/purwantodwigeo10/exel-to-feature-qgis/issues
+repository=https://github.com/purwantodwigeo10/exel-to-feature-qgis
+license=GPL-3.0-or-later
+experimental=False
+deprecated=False
+server=False
+hasProcessingProvider=False
+tags=excel,csv,coordinates,points,polyline,polygon,transformation
+changelog=1.4.3
+    Improved CSV and XLSX coordinate-table reading.
+    Added bounded XML parsing safeguards for XLSX files.
+    Improved point, polyline, and polygon output validation.
+    Added sample data and clearer usage documentation.
