@@ -19,6 +19,15 @@ server=False
 hasProcessingProvider=False
 tags=excel,csv,coordinates,points,polyline,polygon,transformation
 changelog=1.4.3
+    Use scoped Qt enums, exec(), Qt-compatible QAction imports and explicit Qt5/Qt6 field types.
+    Use bounded License Hub HTTPS requests, manual redirect policy, HTTP/network error checks and an already-finished reply guard.
+    Give explicit inactive/revoked/expired/pending states priority over conflicting success flags.
+    Use optional Z values in PointZ/LineStringZ/PolygonZ geometry; XY reprojection does not perform vertical-datum conversion.
+    Reject non-finite coordinates; handle Indonesian and international numeric separators.
+    Validate all selected geometry types before starting output writes.
+    Reject invalid coordinate rows for line/polygon output and reject invalid polygon rings.
+    Correct missing output extension and use the V3 vector writer with the correct error message.
+    Harden the XLSX XML fallback against late/UTF-16 DTD declarations, invalid columns and missing shared strings.
     Improved CSV and XLSX coordinate-table reading.
     Added bounded XML parsing safeguards for XLSX files.
     Improved point, polyline, and polygon output validation.

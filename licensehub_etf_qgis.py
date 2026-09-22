@@ -1,3 +1,4 @@
+from .license_response import has_denial
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: GPL-3.0-or-later
 """
@@ -313,6 +314,8 @@ class LicenseManager(object):
         return msg or "License status could not be confirmed from the server."
 
     def _status_from_response(self, data):
+        if has_denial(data):
+            return False, "License is inactive or pending."
         if not isinstance(data, dict):
             return None, ""
         msg = (data.get("message") or data.get("detail") or data.get("msg") or

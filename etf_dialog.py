@@ -1,10 +1,15 @@
+from .run_guard import single_run
+from .number_utils import parse_number
+from .output_safety import ensure_new_output
+from qgis.core import QgsPoint, QgsLineString, QgsPolygon
+from .qt_compat import FIELD_STRING, FIELD_INT
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: GPL-3.0-or-later
 
 import os
 import traceback
 
-from qgis.PyQt.QtCore import Qt, QVariant, QUrl
+from qgis.PyQt.QtCore import Qt, QUrl
 from qgis.PyQt.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QLineEdit, QPushButton,
     QFileDialog, QComboBox, QCheckBox, QMessageBox, QGroupBox, QTextEdit,
@@ -31,9 +36,9 @@ class ActivationDialog(QDialog):
         self.setWindowTitle("License Activation")
         self.setWindowFlags(
             self.windowFlags()
-            | Qt.WindowMinimizeButtonHint
-            | Qt.WindowMaximizeButtonHint
-            | Qt.WindowCloseButtonHint
+            | Qt.WindowType.WindowMinimizeButtonHint
+            | Qt.WindowType.WindowMaximizeButtonHint
+            | Qt.WindowType.WindowCloseButtonHint
         )
         self.setSizeGripEnabled(True)
         self.resize(720, 180)
@@ -45,7 +50,7 @@ class ActivationDialog(QDialog):
 
         grid = QGridLayout()
         self.lbl_status = QLabel("-")
-        self.lbl_status.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        self.lbl_status.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
 
         self.txt_device_id = QLineEdit()
         self.txt_device_id.setReadOnly(True)
@@ -164,9 +169,9 @@ class ExelToFeatureDialog(QDialog):
         self.setWindowTitle("Exel to Feature (Coordinate Transformation)")
         self.setWindowFlags(
             self.windowFlags()
-            | Qt.WindowMinimizeButtonHint
-            | Qt.WindowMaximizeButtonHint
-            | Qt.WindowCloseButtonHint
+            | Qt.WindowType.WindowMinimizeButtonHint
+            | Qt.WindowType.WindowMaximizeButtonHint
+            | Qt.WindowType.WindowCloseButtonHint
         )
         self.setSizeGripEnabled(True)
         self.resize(900, 720)
@@ -184,15 +189,15 @@ class ExelToFeatureDialog(QDialog):
         if os.path.exists(icon_path):
             pix = QPixmap(icon_path)
             self.lbl_logo.setPixmap(pix.scaled(
-                150, 150, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+                150, 150, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
         self.lbl_logo.setMinimumWidth(180)
-        self.lbl_logo.setAlignment(Qt.AlignCenter)
+        self.lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         hero_layout.addWidget(self.lbl_logo)
 
         center = QVBoxLayout()
         self.lbl_title = QLabel(
             "<span style='font-size:24px; font-weight:700;'>Exel to Feature</span><br><span style='font-size:16px; font-weight:600;'>(Coordinate Transformation)</span>")
-        self.lbl_title.setTextFormat(Qt.RichText)
+        self.lbl_title.setTextFormat(Qt.TextFormat.RichText)
         self.lbl_desc = QLabel(
             "Exel to Feature helps users convert coordinate data from Excel or CSV files into "
             "Point, Polyline, and Polygon layers quickly and efficiently. This plugin supports sheet selection, "
@@ -205,17 +210,17 @@ class ExelToFeatureDialog(QDialog):
 
         right = QVBoxLayout()
         self.lbl_plugin_status = QLabel()
-        self.lbl_plugin_status.setTextFormat(Qt.RichText)
+        self.lbl_plugin_status.setTextFormat(Qt.TextFormat.RichText)
         self.lbl_activation = QLabel()
-        self.lbl_activation.setTextFormat(Qt.RichText)
+        self.lbl_activation.setTextFormat(Qt.TextFormat.RichText)
         self.btn_manage = QPushButton("Manage Activation")
         self.btn_manage.clicked.connect(self.show_activation_dialog)
         self.btn_help_main = QPushButton("User Guide and Activation")
         self.btn_help_main.clicked.connect(self.open_help_page)
-        right.addWidget(self.lbl_plugin_status, 0, Qt.AlignRight)
-        right.addWidget(self.lbl_activation, 0, Qt.AlignRight)
-        right.addWidget(self.btn_manage, 0, Qt.AlignRight)
-        right.addWidget(self.btn_help_main, 0, Qt.AlignRight)
+        right.addWidget(self.lbl_plugin_status, 0, Qt.AlignmentFlag.AlignRight)
+        right.addWidget(self.lbl_activation, 0, Qt.AlignmentFlag.AlignRight)
+        right.addWidget(self.btn_manage, 0, Qt.AlignmentFlag.AlignRight)
+        right.addWidget(self.btn_help_main, 0, Qt.AlignmentFlag.AlignRight)
         right.addStretch(1)
         hero_layout.addLayout(right)
 
@@ -321,7 +326,7 @@ class ExelToFeatureDialog(QDialog):
 
     def show_activation_dialog(self):
         dlg = ActivationDialog(self.lm, self)
-        dlg.exec_()
+        dlg.exec()
         self.refresh_license_status()
 
     def refresh_license_status(self):
@@ -423,6 +428,7 @@ class ExelToFeatureDialog(QDialog):
         if none_first:
             combo.setCurrentIndex(0)
 
+    @single_run
     def run_tool(self):
         can_run, msg = self.lm.can_run()
         if not can_run:
@@ -472,6 +478,8 @@ class ExelToFeatureDialog(QDialog):
         point_field = self.cmb_point.currentText().strip()
         if not x_field or not y_field:
             raise RuntimeError("X and Y fields are required.")
+        if x_field == y_field:
+            raise RuntimeError("X and Y must use different coordinate fields.")
         if z_field == "<none>":
             z_field = ""
         if point_field == "<none>":
@@ -481,7 +489,7 @@ class ExelToFeatureDialog(QDialog):
         if not in_crs.isValid() or not out_crs.isValid():
             raise RuntimeError("Input/Output Coordinate System is not valid.")
         points, clean_records, invalid = self._records_to_points(
-            records, x_field, y_field, in_crs, out_crs, point_field)
+            records, x_field, y_field, in_crs, out_crs, point_field, z_field)
         if invalid:
             self.warn(
                 "%s rows were skipped because the coordinates are invalid." %
@@ -492,47 +500,29 @@ class ExelToFeatureDialog(QDialog):
         outputs = []
         derived = self._derive_outputs(out_base, self.chk_point.isChecked(
         ), self.chk_line.isChecked(), self.chk_polygon.isChecked())
-        if self.chk_point.isChecked():
-            layer = self._make_point_layer(
-                headers, clean_records, points, out_crs)
-            self._write_layer(layer, derived["point"])
-            QgsProject.instance().addMapLayer(QgsVectorLayer(
-                derived["point"], os.path.basename(derived["point"]), "ogr"))
-            outputs.append(derived["point"])
-        if self.chk_line.isChecked():
-            if len(points) < 2:
-                raise RuntimeError(
-                    "Polyline requires at least 2 valid points.")
-            layer = self._make_line_layer(
-                headers, clean_records, points, out_crs)
-            self._write_layer(layer, derived["line"])
-            QgsProject.instance().addMapLayer(QgsVectorLayer(
-                derived["line"], os.path.basename(derived["line"]), "ogr"))
-            outputs.append(derived["line"])
-        if self.chk_polygon.isChecked():
-            if len(points) < 3:
-                raise RuntimeError("Polygon requires at least 3 valid points.")
-            layer = self._make_polygon_layer(
-                headers, clean_records, points, out_crs)
-            self._write_layer(layer, derived["polygon"])
-            QgsProject.instance().addMapLayer(QgsVectorLayer(
-                derived["polygon"], os.path.basename(derived["polygon"]), "ogr"))
-            outputs.append(derived["polygon"])
+        if self.chk_line.isChecked() and len({(p.x(), p.y()) for p in points}) < 2:
+            raise RuntimeError("Polyline requires at least two distinct coordinates.")
+        if self.chk_polygon.isChecked() and len({(p.x(), p.y()) for p in points}) < 3:
+            raise RuntimeError("Polygon requires at least three distinct coordinates.")
+        if invalid and (self.chk_line.isChecked() or self.chk_polygon.isChecked()):
+            raise RuntimeError("Invalid rows would change boundary topology. Correct those rows before creating lines or polygons.")
+        layers = []
+        for key, maker in (("point", self._make_point_layer), ("line", self._make_line_layer),
+                           ("polygon", self._make_polygon_layer)):
+            if derived[key]:
+                ensure_new_output(derived[key])
+                layers.append((maker(headers, clean_records, points, out_crs), derived[key]))
+        for layer, destination in layers:
+            self._write_layer(layer, destination)
+            loaded = QgsVectorLayer(destination, os.path.basename(destination), "ogr")
+            if not loaded.isValid() or loaded.featureCount() != layer.featureCount():
+                raise RuntimeError("Output validation failed: %s" % destination)
+            QgsProject.instance().addMapLayer(loaded)
+            outputs.append(destination)
         return outputs
 
     def _parse_float(self, value):
-        if value is None:
-            raise ValueError("empty")
-        if isinstance(value, (int, float)):
-            return float(value)
-        s = str(value).strip()
-        if not s:
-            raise ValueError("empty")
-        if "," in s and "." in s:
-            s = s.replace(".", "").replace(",", ".")
-        elif "," in s and "." not in s:
-            s = s.replace(",", ".")
-        return float(s)
+        return parse_number(value)
 
     def _records_to_points(
             self,
@@ -541,7 +531,7 @@ class ExelToFeatureDialog(QDialog):
             y_field,
             in_crs,
             out_crs,
-            point_field=""):
+            point_field="", z_field=""):
         transformer = None
         if in_crs.authid() != out_crs.authid() or in_crs.toWkt() != out_crs.toWkt():
             transformer = QgsCoordinateTransform(
@@ -562,10 +552,15 @@ class ExelToFeatureDialog(QDialog):
             try:
                 x = self._parse_float(rec.get(x_field))
                 y = self._parse_float(rec.get(y_field))
+                if in_crs.isGeographic() and (abs(x) > 180 or abs(y) > 90):
+                    raise ValueError("Longitude/latitude is outside its valid range.")
+                z = self._parse_float(rec.get(z_field)) if z_field else None
                 pt = QgsPointXY(x, y)
                 if transformer:
                     pt = transformer.transform(pt)
-                pts.append(pt)
+                self._parse_float(pt.x())
+                self._parse_float(pt.y())
+                pts.append(QgsPoint(pt.x(), pt.y(), z) if z_field else pt)
                 clean.append(rec)
             except Exception:
                 invalid += 1
@@ -589,34 +584,37 @@ class ExelToFeatureDialog(QDialog):
         return fields
 
     def _make_point_layer(self, headers, records, points, crs):
-        layer = QgsVectorLayer("Point", "ETFAR_Point", "memory")
+        layer = QgsVectorLayer("PointZ" if isinstance(points[0], QgsPoint) else "Point", "ETFAR_Point", "memory")
         layer.setCrs(crs)
         provider = layer.dataProvider()
         fmap = self._make_fields(headers)
-        provider.addAttributes([QgsField(out_name, QVariant.String)
+        provider.addAttributes([QgsField(out_name, FIELD_STRING)
                                for _, out_name in fmap])
         layer.updateFields()
         feats = []
         for rec, pt in zip(records, points):
             f = QgsFeature(layer.fields())
-            f.setGeometry(QgsGeometry.fromPointXY(pt))
+            f.setGeometry(QgsGeometry(pt) if isinstance(pt, QgsPoint) else QgsGeometry.fromPointXY(pt))
             f.setAttributes([str(rec.get(src, "")) for src, _ in fmap])
             feats.append(f)
-        provider.addFeatures(feats)
+        ok, _ = provider.addFeatures(feats)
+        if not ok or layer.featureCount() != len(feats):
+            raise RuntimeError("Some points could not be added to the output.")
         layer.updateExtents()
         return layer
 
     def _make_line_layer(self, headers, records, points, crs):
-        layer = QgsVectorLayer("LineString", "ETFAR_Polyline", "memory")
+        layer = QgsVectorLayer("LineStringZ" if isinstance(points[0], QgsPoint) else "LineString", "ETFAR_Polyline", "memory")
         layer.setCrs(crs)
         provider = layer.dataProvider()
-        provider.addAttributes([QgsField("JUMLAH", QVariant.Int),
-                               QgsField("SUMBER", QVariant.String)])
+        provider.addAttributes([QgsField("JUMLAH", FIELD_INT),
+                               QgsField("SUMBER", FIELD_STRING)])
         layer.updateFields()
         f = QgsFeature(layer.fields())
-        f.setGeometry(QgsGeometry.fromPolylineXY(points))
+        f.setGeometry(QgsGeometry.fromPolyline(points) if isinstance(points[0], QgsPoint) else QgsGeometry.fromPolylineXY(points))
         f.setAttributes([len(points), PRODUCT_CODE])
-        provider.addFeature(f)
+        if not provider.addFeature(f):
+            raise RuntimeError("The geometry could not be added to the output.")
         layer.updateExtents()
         return layer
 
@@ -624,16 +622,21 @@ class ExelToFeatureDialog(QDialog):
         ring = list(points)
         if ring[0] != ring[-1]:
             ring.append(ring[0])
-        layer = QgsVectorLayer("Polygon", "ETFAR_Polygon", "memory")
+        layer = QgsVectorLayer("PolygonZ" if isinstance(points[0], QgsPoint) else "Polygon", "ETFAR_Polygon", "memory")
         layer.setCrs(crs)
         provider = layer.dataProvider()
-        provider.addAttributes([QgsField("JUMLAH", QVariant.Int),
-                               QgsField("SUMBER", QVariant.String)])
+        provider.addAttributes([QgsField("JUMLAH", FIELD_INT),
+                               QgsField("SUMBER", FIELD_STRING)])
         layer.updateFields()
         f = QgsFeature(layer.fields())
-        f.setGeometry(QgsGeometry.fromPolygonXY([ring]))
+        geometry = (QgsGeometry(QgsPolygon(QgsLineString(ring)))
+                    if isinstance(points[0], QgsPoint) else QgsGeometry.fromPolygonXY([ring]))
+        if geometry.isEmpty() or geometry.area() <= 0 or not geometry.isGeosValid():
+            raise RuntimeError("Polygon is invalid. Check point order, duplicate vertices and self-intersections.")
+        f.setGeometry(geometry)
         f.setAttributes([len(points), PRODUCT_CODE])
-        provider.addFeature(f)
+        if not provider.addFeature(f):
+            raise RuntimeError("The geometry could not be added to the output.")
         layer.updateExtents()
         return layer
 
@@ -645,6 +648,9 @@ class ExelToFeatureDialog(QDialog):
         if not ext:
             ext = ".shp"
             base = out_base
+            out_base = base + ext
+        if ext.lower() not in (".shp", ".gpkg"):
+            raise RuntimeError("Output must use .shp or .gpkg extension.")
         selected = sum(
             [1 if do_point else 0, 1 if do_line else 0, 1 if do_poly else 0])
         if selected == 1:
@@ -660,33 +666,14 @@ class ExelToFeatureDialog(QDialog):
         }
 
     def _write_layer(self, layer, path):
-        if os.path.exists(path):
-            self._delete_existing_vector(path)
-        ext = os.path.splitext(path)[1].lower()
-        driver = "GPKG" if ext == ".gpkg" else "ESRI Shapefile"
-        ctx = QgsProject.instance().transformContext()
-        try:
-            options = QgsVectorFileWriter.SaveVectorOptions()
-            options.driverName = driver
-            options.fileEncoding = "UTF-8"
-            result = QgsVectorFileWriter.writeAsVectorFormatV2(
-                layer, path, ctx, options)
-            err = result[0] if isinstance(result, tuple) else result
-            if err != QgsVectorFileWriter.NoError:
-                msg = result[3] if isinstance(result, tuple) and len(
-                    result) > 3 else str(result)
-                raise RuntimeError(msg)
-        except AttributeError:
-            err = QgsVectorFileWriter.writeAsVectorFormat(
-                layer, path, "UTF-8", layer.crs(), driver)
-            if isinstance(err, tuple):
-                code = err[0]
-                msg = err[1] if len(err) > 1 else ""
-            else:
-                code = err
-                msg = ""
-            if code != QgsVectorFileWriter.NoError:
-                raise RuntimeError(msg or "Failed to save layer: %s" % path)
+        ensure_new_output(path)
+        options = QgsVectorFileWriter.SaveVectorOptions()
+        options.driverName = "GPKG" if path.lower().endswith(".gpkg") else "ESRI Shapefile"
+        options.fileEncoding = "UTF-8"
+        result = QgsVectorFileWriter.writeAsVectorFormatV3(
+            layer, path, QgsProject.instance().transformContext(), options)
+        if result[0] != QgsVectorFileWriter.WriterError.NoError:
+            raise RuntimeError("Failed to write %s: %s" % (path, result[1]))
 
     def _delete_existing_vector(self, path):
         base, ext = os.path.splitext(path)

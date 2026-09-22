@@ -105,6 +105,8 @@ def _read_xlsx_openpyxl(path, sheet_name=None):
     import openpyxl
     wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
     try:
+        if sheet_name and sheet_name not in wb.sheetnames:
+            raise RuntimeError("Selected worksheet was not found: %s" % sheet_name)
         ws = wb[sheet_name] if sheet_name and sheet_name in wb.sheetnames else wb[wb.sheetnames[0]]
         rows = []
         for row in ws.iter_rows(values_only=True):
@@ -118,6 +120,8 @@ def _read_xls_xlrd(path, sheet_name=None):
     import xlrd
     book = xlrd.open_workbook(path, on_demand=True)
     try:
+        if sheet_name and sheet_name not in book.sheet_names():
+            raise RuntimeError("Selected worksheet was not found: %s" % sheet_name)
         if sheet_name and sheet_name in book.sheet_names():
             sh = book.sheet_by_name(sheet_name)
         else:
@@ -168,7 +172,7 @@ def _safe_xml_from_zip(archive, member_name):
         raise RuntimeError(
             "The XLSX XML member is too large to process safely.")
     raw = archive.read(member_name)
-    lowered = raw[:4096].lower()
+    lowered = raw.replace(b"\x00", b"").lower()
     if b"<!doctype" in lowered or b"<!entity" in lowered:
         raise RuntimeError(
             "Unsafe XML declarations are not allowed in XLSX files.")
@@ -194,20 +198,22 @@ def _xlsx_list_sheets_xml(path):
 def _col_index(cell_ref):
     letters = ""
     for ch in cell_ref:
-        if ch.isalpha():
+        if ch.upper() in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
             letters += ch.upper()
         else:
             break
     n = 0
     for ch in letters:
         n = n * 26 + (ord(ch) - 64)
-    return max(0, n - 1)
+    if not 1 <= n <= 16384:
+        raise RuntimeError("XLSX cell column is outside the worksheet limit.")
+    return n - 1
 
 
 def _shared_strings(z):
     try:
         root = _safe_xml_from_zip(z, "xl/sharedStrings.xml")
-    except Exception:
+    except KeyError:
         return []
     strings = []
     for si in root.findall(_NS_MAIN + "si"):
@@ -252,8 +258,7 @@ def _cell_value(cell, shared):
     if typ == "inlineStr":
         is_el = cell.find(_NS_MAIN + "is")
         if is_el is not None:
-            t = is_el.find(_NS_MAIN + "t")
-            return t.text if t is not None and t.text is not None else ""
+            return "".join(t.text or "" for t in is_el.iter(_NS_MAIN + "t"))
         return ""
     if v is None or v.text is None:
         return ""
@@ -261,8 +266,8 @@ def _cell_value(cell, shared):
     if typ == "s":
         try:
             return shared[int(text)]
-        except Exception:
-            return text
+        except (ValueError, IndexError):
+            raise RuntimeError("Invalid XLSX shared-string reference: %s" % text)
     return text
 
 
@@ -271,6 +276,8 @@ def _read_xlsx_xml(path, sheet_name=None):
         smap = _sheet_map(z)
         if not smap:
             raise RuntimeError("Sheet tidak ditemukan pada file XLSX.")
+        if sheet_name and sheet_name not in smap:
+            raise RuntimeError("Selected worksheet was not found: %s" % sheet_name)
         if sheet_name and sheet_name in smap:
             sheet_path = smap[sheet_name]
         else:
