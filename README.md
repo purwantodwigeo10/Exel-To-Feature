@@ -1,12 +1,12 @@
-# Exel to Feature (Coordinate Transformation)
+# Excel to Feature (Coordinate Transformation)
 
-Exel to Feature creates point, polyline, and polygon layers from coordinate
+Excel to Feature creates point, polyline, and polygon layers from coordinate
 tables. Users select X and Y fields, an optional Z field, an optional point-order
 field, source and destination coordinate systems, and one or more output
 geometry types.
 
-The public product name intentionally remains **Exel to Feature** to preserve
-its established activation identity (`ETFAR`).
+The public plugin title is **Excel to Feature**. Its established activation
+identity (`ETFAR`) and legacy License Hub product identifier remain unchanged.
 
 ## Supported input and output
 
@@ -19,7 +19,7 @@ its established activation identity (`ETFAR`).
 
 1. Download the release ZIP without extracting it.
 2. In QGIS, open **Plugins > Manage and Install Plugins > Install from ZIP**.
-3. Select the ZIP, install it, and enable **Exel to Feature**.
+3. Select the ZIP, install it, and enable **Excel to Feature**.
 4. Open it from **Vector > RUANG SPASIAL** or its toolbar button.
 
 ## Quick test

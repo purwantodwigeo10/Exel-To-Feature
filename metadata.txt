@@ -1,12 +1,12 @@
 [general]
-name=Exel to Feature (Coordinate Transformation)
+name=Excel to Feature (Coordinate Transformation)
 qgisMinimumVersion=3.22
 qgisMaximumVersion=3.99
 description=Create point, polyline, and polygon layers from tabular coordinates with optional CRS transformation.
 version=1.4.3
 author=Dwi Purwanto
 email=ruangspasial@gmail.com
-about=Exel to Feature reads CSV and XLSX coordinate tables, maps X, Y, optional Z and sequence fields, and creates point, polyline, or polygon output. CSV and XLSX work without an additional Python package; legacy XLS input requires xlrd in the QGIS Python environment. License activation uses the Ruang Spasial License Hub over HTTPS. No spreadsheet or GIS dataset is transmitted to the service.
+about=Excel to Feature reads CSV and XLSX coordinate tables, maps X, Y, optional Z and sequence fields, and creates point, polyline, or polygon output. CSV and XLSX work without an additional Python package; legacy XLS input requires xlrd in the QGIS Python environment. License activation uses the Ruang Spasial License Hub over HTTPS. No spreadsheet or GIS dataset is transmitted to the service.
 category=Vector
 icon=icon.png
 homepage=https://aktivasi.ruangspasial.my.id/help/exel-to-feature-coordinate-transformation-qgis
@@ -19,6 +19,7 @@ server=False
 hasProcessingProvider=False
 tags=excel,csv,coordinates,points,polyline,polygon,transformation
 changelog=1.4.3
+    Correct the public plugin title from Exel to Feature to Excel to Feature while retaining the ETFAR activation identity.
     Use scoped Qt enums, exec(), Qt-compatible QAction imports and explicit Qt5/Qt6 field types.
     Use bounded License Hub HTTPS requests, manual redirect policy, HTTP/network error checks and an already-finished reply guard.
     Give explicit inactive/revoked/expired/pending states priority over conflicting success flags.

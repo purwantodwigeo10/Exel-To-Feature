@@ -7,7 +7,8 @@ RUANG SPASIAL License Hub module for QGIS 3.x.
 
 Concept aligned with ArcMap/TBX and previous RUANG SPASIAL plugins:
 - Product Code: ETFAR
-- Product Name: Exel to Feature (Coordinate Transformation)
+- Display Name: Excel to Feature (Coordinate Transformation)
+- Legacy License Product Name: Exel to Feature (Coordinate Transformation)
 - Trial limit: 2 uses
 - Device ID compatible with ArcMap/Quirreva/ZoneSculpt/RasterReach
 - ETFAR activation codes can be used across ArcMap and QGIS on the same laptop
@@ -35,7 +36,10 @@ except Exception:
 
 REQUEST_URL = "https://aktivasi.ruangspasial.my.id/request"
 LICENSE_API_BASE = "https://aktivasi.ruangspasial.my.id"
+# Keep the legacy product name in License Hub requests and activation-code
+# compatibility checks. The corrected name is used only in the plugin UI.
 PRODUCT_NAME = "Exel to Feature (Coordinate Transformation)"
+DISPLAY_NAME = "Excel to Feature (Coordinate Transformation)"
 PRODUCT_CODE = "ETFAR"
 FIXED_CODE = ""
 LEGACY_PRODUCT_CODES = ()

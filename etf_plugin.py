@@ -22,7 +22,7 @@ class AxelToFeatureETFPlugin(object):
         icon = QIcon(icon_path) if os.path.exists(icon_path) else QIcon()
         self.action = QAction(
             icon,
-            "Exel to Feature (Coordinate Transformation)",
+            "Excel to Feature (Coordinate Transformation)",
             self.iface.mainWindow())
         self.action.setObjectName(
             "ExelToFeatureCoordinateTransformationAction")

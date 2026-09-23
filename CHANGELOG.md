@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.3 title and Qt6 correction
+
+- Corrected the public title from **Exel to Feature** to **Excel to Feature**.
+- Retained the existing `ETFAR` activation identity for compatibility.
+- Updated scoped Qt enums and `exec()` usage for Qt6 compatibility checks.
+
 ## 1.4.3 metadata correction
 
 - Corrected the GitHub repository and issue-tracker URLs to match the actual

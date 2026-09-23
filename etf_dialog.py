@@ -23,7 +23,7 @@ from qgis.core import (
 )
 from qgis.gui import QgsProjectionSelectionWidget
 
-from .licensehub_etf_qgis import LicenseManager, PRODUCT_CODE, PRODUCT_NAME, TRIAL_LIMIT
+from .licensehub_etf_qgis import LicenseManager, PRODUCT_CODE, DISPLAY_NAME, TRIAL_LIMIT
 from .excel_reader import list_sheets, read_table
 
 HELP_URL = "https://aktivasi.ruangspasial.my.id/help/exel-to-feature-coordinate-transformation-qgis"
@@ -120,32 +120,32 @@ class ActivationDialog(QDialog):
                                    (used, TRIAL_LIMIT, remaining))
             if ok is True:
                 QMessageBox.information(
-                    self, PRODUCT_NAME, "License status was refreshed from the website.")
+                    self, DISPLAY_NAME, "License status was refreshed from the website.")
             else:
                 QMessageBox.warning(
                     self,
-                    PRODUCT_NAME,
+                    DISPLAY_NAME,
                     msg or "License status could not be confirmed from the website.")
 
     def copy_device_id(self):
         try:
             QApplication.clipboard().setText(self.txt_device_id.text().strip())
             QMessageBox.information(
-                self, PRODUCT_NAME, "Device ID copied successfully.")
+                self, DISPLAY_NAME, "Device ID copied successfully.")
         except Exception as e:
-            QMessageBox.warning(self, PRODUCT_NAME,
+            QMessageBox.warning(self, DISPLAY_NAME,
                                 "Failed to copy Device ID: %s" % e)
 
     def open_request_page(self):
         try:
             self.lm.open_request_url()
             QMessageBox.information(
-                self, PRODUCT_NAME, "The activation request page has been opened.\n\n"
+                self, DISPLAY_NAME, "The activation request page has been opened.\n\n"
                 "Please submit the activation request on the opened web page. "
                 "Make sure the Device ID and ETFAR product code are correct. "
                 "After the request is approved, enter the activation code in the field provided and click Activate.")
         except Exception as e:
-            QMessageBox.critical(self, PRODUCT_NAME,
+            QMessageBox.critical(self, DISPLAY_NAME,
                                  "Failed to open request page: %s" % e)
 
     def activate_license(self):
@@ -153,10 +153,10 @@ class ActivationDialog(QDialog):
         ok, msg = self.lm.activate(code)
         self.refresh_status(quiet=True)
         if ok:
-            QMessageBox.information(self, PRODUCT_NAME, msg)
+            QMessageBox.information(self, DISPLAY_NAME, msg)
             self.accept()
         else:
-            QMessageBox.warning(self, PRODUCT_NAME, msg)
+            QMessageBox.warning(self, DISPLAY_NAME, msg)
 
 
 class ExelToFeatureDialog(QDialog):
@@ -166,7 +166,7 @@ class ExelToFeatureDialog(QDialog):
         self.lm = LicenseManager()
         self.headers = []
         self.records = []
-        self.setWindowTitle("Exel to Feature (Coordinate Transformation)")
+        self.setWindowTitle("Excel to Feature (Coordinate Transformation)")
         self.setWindowFlags(
             self.windowFlags()
             | Qt.WindowType.WindowMinimizeButtonHint
@@ -196,10 +196,10 @@ class ExelToFeatureDialog(QDialog):
 
         center = QVBoxLayout()
         self.lbl_title = QLabel(
-            "<span style='font-size:24px; font-weight:700;'>Exel to Feature</span><br><span style='font-size:16px; font-weight:600;'>(Coordinate Transformation)</span>")
+            "<span style='font-size:24px; font-weight:700;'>Excel to Feature</span><br><span style='font-size:16px; font-weight:600;'>(Coordinate Transformation)</span>")
         self.lbl_title.setTextFormat(Qt.TextFormat.RichText)
         self.lbl_desc = QLabel(
-            "Exel to Feature helps users convert coordinate data from Excel or CSV files into "
+            "Excel to Feature helps users convert coordinate data from Excel or CSV files into "
             "Point, Polyline, and Polygon layers quickly and efficiently. This plugin supports sheet selection, "
             "coordinate fields, input and output coordinate systems, and saving results to Shapefile or GeoPackage.")
         self.lbl_desc.setWordWrap(True)
@@ -317,11 +317,11 @@ class ExelToFeatureDialog(QDialog):
             if not opened:
                 QMessageBox.warning(
                     self,
-                    PRODUCT_NAME,
+                    DISPLAY_NAME,
                     "The help page could not be opened automatically. Please open this link manually:\n%s" %
                     HELP_URL)
         except Exception as e:
-            QMessageBox.warning(self, PRODUCT_NAME,
+            QMessageBox.warning(self, DISPLAY_NAME,
                                 "Failed to open help page: %s\n%s" % (e, HELP_URL))
 
     def show_activation_dialog(self):
@@ -696,12 +696,12 @@ class ExelToFeatureDialog(QDialog):
 
     def info(self, msg):
         self.log_msg(msg)
-        QMessageBox.information(self, PRODUCT_NAME, msg)
+        QMessageBox.information(self, DISPLAY_NAME, msg)
 
     def warn(self, msg):
         self.log_msg("WARNING: " + str(msg))
-        QMessageBox.warning(self, PRODUCT_NAME, str(msg))
+        QMessageBox.warning(self, DISPLAY_NAME, str(msg))
 
     def error(self, msg):
         self.log_msg("ERROR: " + str(msg))
-        QMessageBox.critical(self, PRODUCT_NAME, str(msg))
+        QMessageBox.critical(self, DISPLAY_NAME, str(msg))

@@ -4,6 +4,8 @@ Version retained at the author's request.
 
 ## Changes
 
+- Correct the public title to **Excel to Feature** while preserving the established `ETFAR` License Hub identity.
+
 - Use scoped Qt enums, exec(), Qt-compatible QAction imports and explicit Qt5/Qt6 field types.
 - Use bounded License Hub HTTPS requests, manual redirect policy, HTTP/network error checks and an already-finished reply guard.
 - Give explicit inactive/revoked/expired/pending states priority over conflicting success flags.
