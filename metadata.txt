@@ -4,9 +4,9 @@ qgisMinimumVersion=3.22
 qgisMaximumVersion=3.99
 description=Create point, polyline, and polygon layers from tabular coordinates with optional CRS transformation.
 version=1.4.3
-author=Dwi Purwanto
+author=Dwi Purwanto (Ruang Spasial)
 email=ruangspasial@gmail.com
-about=Excel to Feature reads CSV and XLSX coordinate tables, maps X, Y, optional Z and sequence fields, and creates point, polyline, or polygon output. CSV and XLSX work without an additional Python package; legacy XLS input requires xlrd in the QGIS Python environment. License activation uses the Ruang Spasial License Hub over HTTPS. No spreadsheet or GIS dataset is transmitted to the service.
+about=Excel to Feature reads coordinate tables, maps X, Y, optional Z and sequence fields, and creates point, polyline, or polygon output.
 category=Vector
 icon=icon.png
 homepage=https://aktivasi.ruangspasial.my.id/help/exel-to-feature-coordinate-transformation-qgis
@@ -19,17 +19,9 @@ server=False
 hasProcessingProvider=False
 tags=excel,csv,coordinates,points,polyline,polygon,transformation
 changelog=1.4.3
-    Correct the public plugin title from Exel to Feature to Excel to Feature while retaining the ETFAR activation identity.
-    Use scoped Qt enums, exec(), Qt-compatible QAction imports and explicit Qt5/Qt6 field types.
-    Use bounded License Hub HTTPS requests, manual redirect policy, HTTP/network error checks and an already-finished reply guard.
-    Give explicit inactive/revoked/expired/pending states priority over conflicting success flags.
-    Use optional Z values in PointZ/LineStringZ/PolygonZ geometry; XY reprojection does not perform vertical-datum conversion.
-    Reject non-finite coordinates; handle Indonesian and international numeric separators.
-    Validate all selected geometry types before starting output writes.
-    Reject invalid coordinate rows for line/polygon output and reject invalid polygon rings.
-    Correct missing output extension and use the V3 vector writer with the correct error message.
-    Harden the XLSX XML fallback against late/UTF-16 DTD declarations, invalid columns and missing shared strings.
-    Improved CSV and XLSX coordinate-table reading.
-    Added bounded XML parsing safeguards for XLSX files.
-    Improved point, polyline, and polygon output validation.
-    Added sample data and clearer usage documentation.
+    Creates point, polyline, and polygon layers from CSV, XLSX, and supported XLS coordinate tables.
+    Supports X, Y, optional Z, point-order fields, and coordinate-system transformation.
+    Writes Shapefile or GeoPackage outputs and automatically adds successful results to QGIS.
+    Validates coordinate rows, output geometry, and created files before completion.
+    Displays live processing progress from 0 to 100 percent.
+    Includes sample coordinate data and usage documentation.

@@ -2,7 +2,7 @@ from .run_guard import single_run
 from .number_utils import parse_number
 from .output_safety import ensure_new_output
 from qgis.core import QgsPoint, QgsLineString, QgsPolygon
-from .qt_compat import FIELD_STRING, FIELD_INT
+from .qt_compat import FIELD_STRING, FIELD_INT, run_dialog_or_loop
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -13,7 +13,7 @@ from qgis.PyQt.QtCore import Qt, QUrl
 from qgis.PyQt.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QLineEdit, QPushButton,
     QFileDialog, QComboBox, QCheckBox, QMessageBox, QGroupBox, QTextEdit,
-    QApplication
+    QApplication, QProgressBar
 )
 from qgis.PyQt.QtGui import QPixmap, QDesktopServices
 
@@ -36,9 +36,9 @@ class ActivationDialog(QDialog):
         self.setWindowTitle("License Activation")
         self.setWindowFlags(
             self.windowFlags()
-            | Qt.WindowType.WindowMinimizeButtonHint
-            | Qt.WindowType.WindowMaximizeButtonHint
-            | Qt.WindowType.WindowCloseButtonHint
+            | Qt.WindowMinimizeButtonHint
+            | Qt.WindowMaximizeButtonHint
+            | Qt.WindowCloseButtonHint
         )
         self.setSizeGripEnabled(True)
         self.resize(720, 180)
@@ -50,7 +50,7 @@ class ActivationDialog(QDialog):
 
         grid = QGridLayout()
         self.lbl_status = QLabel("-")
-        self.lbl_status.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        self.lbl_status.setTextInteractionFlags(Qt.TextSelectableByMouse)
 
         self.txt_device_id = QLineEdit()
         self.txt_device_id.setReadOnly(True)
@@ -169,9 +169,9 @@ class ExelToFeatureDialog(QDialog):
         self.setWindowTitle("Excel to Feature (Coordinate Transformation)")
         self.setWindowFlags(
             self.windowFlags()
-            | Qt.WindowType.WindowMinimizeButtonHint
-            | Qt.WindowType.WindowMaximizeButtonHint
-            | Qt.WindowType.WindowCloseButtonHint
+            | Qt.WindowMinimizeButtonHint
+            | Qt.WindowMaximizeButtonHint
+            | Qt.WindowCloseButtonHint
         )
         self.setSizeGripEnabled(True)
         self.resize(900, 720)
@@ -189,15 +189,15 @@ class ExelToFeatureDialog(QDialog):
         if os.path.exists(icon_path):
             pix = QPixmap(icon_path)
             self.lbl_logo.setPixmap(pix.scaled(
-                150, 150, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+                150, 150, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         self.lbl_logo.setMinimumWidth(180)
-        self.lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lbl_logo.setAlignment(Qt.AlignCenter)
         hero_layout.addWidget(self.lbl_logo)
 
         center = QVBoxLayout()
         self.lbl_title = QLabel(
             "<span style='font-size:24px; font-weight:700;'>Excel to Feature</span><br><span style='font-size:16px; font-weight:600;'>(Coordinate Transformation)</span>")
-        self.lbl_title.setTextFormat(Qt.TextFormat.RichText)
+        self.lbl_title.setTextFormat(Qt.RichText)
         self.lbl_desc = QLabel(
             "Excel to Feature helps users convert coordinate data from Excel or CSV files into "
             "Point, Polyline, and Polygon layers quickly and efficiently. This plugin supports sheet selection, "
@@ -210,17 +210,17 @@ class ExelToFeatureDialog(QDialog):
 
         right = QVBoxLayout()
         self.lbl_plugin_status = QLabel()
-        self.lbl_plugin_status.setTextFormat(Qt.TextFormat.RichText)
+        self.lbl_plugin_status.setTextFormat(Qt.RichText)
         self.lbl_activation = QLabel()
-        self.lbl_activation.setTextFormat(Qt.TextFormat.RichText)
+        self.lbl_activation.setTextFormat(Qt.RichText)
         self.btn_manage = QPushButton("Manage Activation")
         self.btn_manage.clicked.connect(self.show_activation_dialog)
         self.btn_help_main = QPushButton("User Guide and Activation")
         self.btn_help_main.clicked.connect(self.open_help_page)
-        right.addWidget(self.lbl_plugin_status, 0, Qt.AlignmentFlag.AlignRight)
-        right.addWidget(self.lbl_activation, 0, Qt.AlignmentFlag.AlignRight)
-        right.addWidget(self.btn_manage, 0, Qt.AlignmentFlag.AlignRight)
-        right.addWidget(self.btn_help_main, 0, Qt.AlignmentFlag.AlignRight)
+        right.addWidget(self.lbl_plugin_status, 0, Qt.AlignRight)
+        right.addWidget(self.lbl_activation, 0, Qt.AlignRight)
+        right.addWidget(self.btn_manage, 0, Qt.AlignRight)
+        right.addWidget(self.btn_help_main, 0, Qt.AlignRight)
         right.addStretch(1)
         hero_layout.addLayout(right)
 
@@ -291,6 +291,16 @@ class ExelToFeatureDialog(QDialog):
         geom_row.addStretch(1)
         layout.addWidget(geom_box)
 
+        progress_row = QHBoxLayout()
+        self.lbl_progress = QLabel("Ready")
+        self.progress = QProgressBar()
+        self.progress.setRange(0, 100)
+        self.progress.setValue(0)
+        self.progress.setFormat("%p%")
+        progress_row.addWidget(self.lbl_progress)
+        progress_row.addWidget(self.progress, 1)
+        layout.addLayout(progress_row)
+
         run_row = QHBoxLayout()
         self.btn_run = QPushButton("Run Tool")
         self.btn_run.clicked.connect(self.run_tool)
@@ -326,8 +336,13 @@ class ExelToFeatureDialog(QDialog):
 
     def show_activation_dialog(self):
         dlg = ActivationDialog(self.lm, self)
-        dlg.exec()
+        run_dialog_or_loop(dlg)
         self.refresh_license_status()
+
+    def set_progress(self, value, message):
+        self.progress.setValue(max(0, min(100, int(value))))
+        self.lbl_progress.setText(message)
+        QApplication.processEvents()
 
     def refresh_license_status(self):
         self.lbl_plugin_status.setText(
@@ -430,11 +445,14 @@ class ExelToFeatureDialog(QDialog):
 
     @single_run
     def run_tool(self):
+        self.set_progress(0, "Checking input...")
         can_run, msg = self.lm.can_run()
         if not can_run:
             self.refresh_license_status()
+            self.set_progress(0, "Unable to start")
             self.error(msg)
             return
+        self.set_progress(10, "License check completed")
         trial_mode = not self.lm.is_activated_local()
         if trial_mode:
             self.warn(
@@ -443,20 +461,27 @@ class ExelToFeatureDialog(QDialog):
             )
 
         try:
+            self.btn_run.setEnabled(False)
             outputs = self._process()
             if trial_mode:
+                self.set_progress(96, "Recording successful trial run...")
                 self.lm.consume_trial_for_run()
+            self.set_progress(100, "Completed")
             self.info("Process completed. Output created:\n" + \
                       "\n".join(outputs))
             self.refresh_license_status()
         except Exception as e:
+            self.lbl_progress.setText("Process failed")
             self.error("Failed to run tool:\n%s\n\n%s" %
                        (e, traceback.format_exc()))
+        finally:
+            self.btn_run.setEnabled(True)
 
     # =====================================================
     # Processing
     # =====================================================
     def _process(self):
+        self.set_progress(15, "Reading settings...")
         path = self.txt_excel.text().strip()
         out_base = self.txt_output.text().strip()
         if not path or not os.path.exists(path):
@@ -469,6 +494,7 @@ class ExelToFeatureDialog(QDialog):
             raise RuntimeError(
                 "Select at least one output: Point, Polyline, or Polygon.")
         sheet = self.cmb_sheet.currentText().strip() if self.cmb_sheet.count() else None
+        self.set_progress(22, "Reading coordinate table...")
         headers, records = read_table(path, sheet)
         if not records:
             raise RuntimeError("There are no data rows to process.")
@@ -488,6 +514,7 @@ class ExelToFeatureDialog(QDialog):
         out_crs = self.crs_output.crs()
         if not in_crs.isValid() or not out_crs.isValid():
             raise RuntimeError("Input/Output Coordinate System is not valid.")
+        self.set_progress(35, "Validating and transforming coordinates...")
         points, clean_records, invalid = self._records_to_points(
             records, x_field, y_field, in_crs, out_crs, point_field, z_field)
         if invalid:
@@ -506,19 +533,25 @@ class ExelToFeatureDialog(QDialog):
             raise RuntimeError("Polygon requires at least three distinct coordinates.")
         if invalid and (self.chk_line.isChecked() or self.chk_polygon.isChecked()):
             raise RuntimeError("Invalid rows would change boundary topology. Correct those rows before creating lines or polygons.")
+        self.set_progress(55, "Preparing output layers...")
         layers = []
         for key, maker in (("point", self._make_point_layer), ("line", self._make_line_layer),
                            ("polygon", self._make_polygon_layer)):
             if derived[key]:
                 ensure_new_output(derived[key])
                 layers.append((maker(headers, clean_records, points, out_crs), derived[key]))
-        for layer, destination in layers:
+        total_layers = max(1, len(layers))
+        for index, (layer, destination) in enumerate(layers, 1):
+            self.set_progress(
+                60 + int((index - 1) * 30 / total_layers),
+                "Writing output %s of %s..." % (index, total_layers))
             self._write_layer(layer, destination)
             loaded = QgsVectorLayer(destination, os.path.basename(destination), "ogr")
             if not loaded.isValid() or loaded.featureCount() != layer.featureCount():
                 raise RuntimeError("Output validation failed: %s" % destination)
             QgsProject.instance().addMapLayer(loaded)
             outputs.append(destination)
+        self.set_progress(94, "Validating created outputs...")
         return outputs
 
     def _parse_float(self, value):

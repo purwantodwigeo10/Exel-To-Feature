@@ -10,8 +10,6 @@ identity (`ETFAR`) and legacy License Hub product identifier remain unchanged.
 
 ## Supported input and output
 
-- Input: CSV and XLSX without an additional Python package.
-- Legacy XLS: requires the optional `xlrd` module in QGIS Python.
 - Output: Shapefile or GeoPackage.
 - Geometry: points, one polyline, and/or one polygon from the valid ordered rows.
 
@@ -32,28 +30,20 @@ identity (`ETFAR`) and legacy License Hub product identifier remain unchanged.
 
 All sample coordinates are synthetic.
 
-## Activation and privacy
+## Activation
 
 - Product code: `ETFAR`
 - Trial: 2 successful processing runs
 
-Trial use is recorded only after output creation succeeds. Activation and
-active-license checks use QGIS' network manager and HTTPS at
-`aktivasi.ruangspasial.my.id`. Only the product identity, activation code, and a
-pseudonymous Device ID are sent. Spreadsheet rows, coordinates, GIS output,
-and paths are never transmitted. Local license state is stored in the current
-user's application-data directory.
+Trial use is recorded only after output creation succeeds.
 
 ## Source, help, and support
 
 - Help: <https://aktivasi.ruangspasial.my.id/help/exel-to-feature-coordinate-transformation-qgis>
-- Source: <https://github.com/purwantodwigeo10/exel-to-feature-qgis>
-- Issues: <https://github.com/purwantodwigeo10/exel-to-feature-qgis/issues>
+- Source: <https://github.com/purwantodwigeo10/Exel-To-Feature>
+- Issues: <https://github.com/purwantodwigeo10/Exel-To-Feature/issues>
 
 Copyright (C) 2026 Dwi Purwanto / Ruang Spasial. Licensed under
 GPL-3.0-or-later; see `LICENSE`.
 
-
-## Current revision
-
-See [REVISION_NOTES.md](REVISION_NOTES.md) for behavior changes and validation limits. Existing output filenames are refused; choose a new name for each run.
+Existing output filenames are refused; choose a new name for each run.
